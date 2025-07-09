@@ -1,4 +1,4 @@
-def call(String imageName, String imageTag, String kubeconfigPath, String k8sPath, string giturl, string credentialsId) {
+def call(String imageName, String imageTag, String kubeconfigPath, String k8sPath, String giturl, String credentialsId) {
     def fullImage = "${imageName}:${imageTag}"
 
      stage('Checkout Code') {
