@@ -1,18 +1,16 @@
 def call(String imageName, String imageTag, String kubeconfigPath, String k8sPath, String giturl, String credentialsId) {
     def fullImage = "${imageName}:${imageTag}"
 
-     stage('Checkout Code') {
-            steps {
-                checkout([
-                    $class: 'GitSCM',
-                    branches: [[name: '*/main']],
-                    userRemoteConfigs: [[
-                        credentialsId: "${credentialsId}",
-                        url: "${giturl}"
-                    ]]
-                ])
-            }
-        }
+    stage('Checkout Code') {
+        checkout([
+            $class: 'GitSCM',
+            branches: [[name: '*/main']],
+            userRemoteConfigs: [[
+                credentialsId: "${credentialsId}",
+                url: "${giturl}"
+            ]]
+        ])
+    }
 
     stage('Build Docker Image') {
         bat "docker build -t ${fullImage} ."
