@@ -36,4 +36,3 @@ def call(String imageName, String imageTag, String kubeconfigPath, String k8sPat
         bat "kubectl --kubeconfig=\"${kubeconfigPath}\" get svc"
     }
 }
-
