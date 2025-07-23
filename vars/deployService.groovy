@@ -7,8 +7,8 @@ def call(String agentLabel, String imageName, String imageTag, String kubeconfig
                 $class: 'GitSCM',
                 branches: [[name: '*/main']],
                 userRemoteConfigs: [[
-                    credentialsId: "${credentialsId}",
-                    url: "${giturl}"
+                    credentialsId: credentialsId,
+                    url: giturl
                 ]]
             ])
         }
