@@ -1,11 +1,11 @@
-def call(String agentLabel, String imageName, String imageTag, String kubeconfigPath, String k8sPath, String giturl, String credentialsId) {
+def call(String agentLabel, String imageName, String imageTag, String kubeconfigPath, String k8sPath, String giturl, String credentialsId, string branch) {
     node('') {
         def fullImage = "${imageName}:${imageTag}"
 
         stage('Checkout Code') {
             checkout([
                 $class: 'GitSCM',
-                branches: [[name: '*/main']],
+                branch: branch,
                 userRemoteConfigs: [[
                     credentialsId: credentialsId,
                     url: giturl
