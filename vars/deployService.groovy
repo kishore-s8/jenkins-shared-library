@@ -1,5 +1,5 @@
 def call(String agentLabel, String imageName, String imageTag, String kubeconfigPath, String helmGitUrl, String helmChartPath, String appGitUrl, String credentialsId, String branch) {
-    node('') {
+    node(agentLabel) {
         def gitCommit = bat(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
         def fullImage = "${imageName}:${imageTag}-${gitCommit}"
 
