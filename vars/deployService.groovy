@@ -2,7 +2,7 @@ def call(String agentLabel, String fullImageName, String imageTag, String kubeco
          String helmGitUrl, String helmChartPath, String appGitUrl,
          String credentialsId, String branch, String dockerCredentialsId) {
 
-    node(agentLabel) {
+    node('') {
 
         stage('Checkout Application Code') {
             dir('app') {
