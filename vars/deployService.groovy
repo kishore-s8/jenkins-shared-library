@@ -49,7 +49,8 @@ def call(String agentLabel, String imageName, String imageTag, String kubeconfig
 
         stage('Deploy to Kubernetes') {
             try {
-                def releaseName = imageName.replaceAll('[^a-zA-Z0-9-]', '')
+                def releaseName = 'calculator-release'
+
                 bat """
                     helm upgrade --install ${releaseName} helm/${helmChartPath} ^
                         --kubeconfig="${kubeconfigPath}" ^
