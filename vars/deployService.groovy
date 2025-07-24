@@ -1,7 +1,7 @@
 def call(String agentLabel, String imageName, String imageTag, String kubeconfigPath,
          String helmGitUrl, String helmChartPath, String appGitUrl,
          String credentialsId, String branch) {
-    node(agentLabel) {
+    node('') {
         def gitCommit = ''
         
         stage('Checkout Application Code') {
