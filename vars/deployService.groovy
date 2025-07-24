@@ -1,8 +1,8 @@
-def call(String agentLabel, String dockerRegistry, String imageName, String imageTag, String kubeconfigPath,
+def call(String agentLabel, String fullImageName, String imageTag, String kubeconfigPath,
          String helmGitUrl, String helmChartPath, String appGitUrl,
          String credentialsId, String branch, String dockerCredentialsId) {
 
-    node(agentLabel) {  // Use passed agent label
+    node(agentLabel) {
 
         stage('Checkout Application Code') {
             dir('app') {
@@ -17,7 +17,7 @@ def call(String agentLabel, String dockerRegistry, String imageName, String imag
             }
         }
 
-        def fullImage = "${dockerRegistry}/${imageName}:${imageTag}"
+        def fullImage = "${fullImageName}:${imageTag}"
 
         stage('Build Docker Image') {
             dir('app') {
@@ -54,7 +54,7 @@ def call(String agentLabel, String dockerRegistry, String imageName, String imag
                 bat """
                     helm upgrade --install ${releaseName} helm/${helmChartPath} ^
                         --kubeconfig="${kubeconfigPath}" ^
-                        --set image.repository=${dockerRegistry}/${imageName} ^
+                        --set image.repository=${fullImageName} ^
                         --set image.tag=${imageTag}
                 """
             } catch (err) {
