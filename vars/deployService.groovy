@@ -1,8 +1,9 @@
-def call(String agentLabel, String imageName, String imageTag, String kubeconfigPath, String helmGitUrl, String helmChartPath, String appGitUrl, String credentialsId, String branch) {
+def call(String agentLabel, String imageName, String imageTag, String kubeconfigPath,
+         String helmGitUrl, String helmChartPath, String appGitUrl,
+         String credentialsId, String branch) {
     node(agentLabel) {
-        def gitCommit = bat(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
-        def fullImage = "${imageName}:${imageTag}-${gitCommit}"
-
+        def gitCommit = ''
+        
         stage('Checkout Application Code') {
             dir('app') {
                 checkout([
@@ -13,8 +14,11 @@ def call(String agentLabel, String imageName, String imageTag, String kubeconfig
                         url: appGitUrl
                     ]]
                 ])
+                gitCommit = bat(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
             }
         }
+        
+        def fullImage = "${imageName}:${imageTag}-${gitCommit}"
 
         stage('Build Docker Image') {
             dir('app') {
@@ -35,7 +39,7 @@ def call(String agentLabel, String imageName, String imageTag, String kubeconfig
             dir('helm') {
                 checkout([
                     $class: 'GitSCM',
-                    branches: [[name: 'main']], // Adjust if helm repo uses a different branch
+                    branches: [[name: 'main']], // adjust if needed
                     userRemoteConfigs: [[
                         credentialsId: credentialsId,
                         url: helmGitUrl
@@ -44,21 +48,20 @@ def call(String agentLabel, String imageName, String imageTag, String kubeconfig
             }
         }
 
-       stage('Deploy to Kubernetes') {
-    try {
-        def releaseName = imageName.replaceAll('[^a-zA-Z0-9-]', '')
-        bat """
-            helm upgrade --install ${releaseName} helm/${helmChartPath} ^
-                --kubeconfig="${kubeconfigPath}" ^
-                --set image.repository=${imageName} ^
-                --set image.tag=${imageTag}-${gitCommit}
-        """
-    } catch (err) {
-        echo "Deployment failed: ${err}"
-        error("Stopping pipeline due to deployment error.")
-    }
-}
-
+        stage('Deploy to Kubernetes') {
+            try {
+                def releaseName = imageName.replaceAll('[^a-zA-Z0-9-]', '')
+                bat """
+                    helm upgrade --install ${releaseName} helm/${helmChartPath} ^
+                        --kubeconfig="${kubeconfigPath}" ^
+                        --set image.repository=${imageName} ^
+                        --set image.tag=${imageTag}-${gitCommit}
+                """
+            } catch (err) {
+                echo "Deployment failed: ${err}"
+                error("Stopping pipeline due to deployment error.")
+            }
+        }
 
         stage('Verify Deployment') {
             bat "kubectl --kubeconfig=\"${kubeconfigPath}\" get pods"
