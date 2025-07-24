@@ -1,8 +1,8 @@
-def call(String agentLabel, String imageName, String imageTag, String kubeconfigPath,
+def call(String agentLabel, String dockerRegistry, String imageName, String imageTag, String kubeconfigPath,
          String helmGitUrl, String helmChartPath, String appGitUrl,
-         String credentialsId, String branch) {
-    
-    node('') { //  Use passed agent label
+         String credentialsId, String branch, String dockerCredentialsId) {
+
+    node(agentLabel) {  // Use passed agent label
 
         stage('Checkout Application Code') {
             dir('app') {
@@ -17,7 +17,7 @@ def call(String agentLabel, String imageName, String imageTag, String kubeconfig
             }
         }
 
-        def fullImage = "${imageName}:${imageTag}"  //  No gitCommit
+        def fullImage = "${dockerRegistry}/${imageName}:${imageTag}"
 
         stage('Build Docker Image') {
             dir('app') {
@@ -26,7 +26,7 @@ def call(String agentLabel, String imageName, String imageTag, String kubeconfig
         }
 
         stage('Push Docker Image') {
-            withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+            withCredentials([usernamePassword(credentialsId: dockerCredentialsId, usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                 bat """
                     docker login -u %DOCKER_USER% -p %DOCKER_PASS%
                     docker push ${fullImage}
@@ -54,7 +54,7 @@ def call(String agentLabel, String imageName, String imageTag, String kubeconfig
                 bat """
                     helm upgrade --install ${releaseName} helm/${helmChartPath} ^
                         --kubeconfig="${kubeconfigPath}" ^
-                        --set image.repository=${imageName} ^
+                        --set image.repository=${dockerRegistry}/${imageName} ^
                         --set image.tag=${imageTag}
                 """
             } catch (err) {
