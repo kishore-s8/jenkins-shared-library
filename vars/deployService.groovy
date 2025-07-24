@@ -1,9 +1,9 @@
 def call(String agentLabel, String imageName, String imageTag, String kubeconfigPath,
          String helmGitUrl, String helmChartPath, String appGitUrl,
          String credentialsId, String branch) {
-    node('') {
-        def gitCommit = ''
-        
+    
+    node('') { //  Use passed agent label
+
         stage('Checkout Application Code') {
             dir('app') {
                 checkout([
@@ -14,11 +14,10 @@ def call(String agentLabel, String imageName, String imageTag, String kubeconfig
                         url: appGitUrl
                     ]]
                 ])
-                gitCommit = bat(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
             }
         }
-        
-        def fullImage = "${imageName}:${imageTag}-${gitCommit}"
+
+        def fullImage = "${imageName}:${imageTag}"  //  No gitCommit
 
         stage('Build Docker Image') {
             dir('app') {
@@ -39,7 +38,7 @@ def call(String agentLabel, String imageName, String imageTag, String kubeconfig
             dir('helm') {
                 checkout([
                     $class: 'GitSCM',
-                    branches: [[name: 'main']], // adjust if needed
+                    branches: [[name: 'main']],
                     userRemoteConfigs: [[
                         credentialsId: credentialsId,
                         url: helmGitUrl
@@ -55,7 +54,7 @@ def call(String agentLabel, String imageName, String imageTag, String kubeconfig
                     helm upgrade --install ${releaseName} helm/${helmChartPath} ^
                         --kubeconfig="${kubeconfigPath}" ^
                         --set image.repository=${imageName} ^
-                        --set image.tag=${imageTag}-${gitCommit}
+                        --set image.tag=${imageTag}
                 """
             } catch (err) {
                 echo "Deployment failed: ${err}"
