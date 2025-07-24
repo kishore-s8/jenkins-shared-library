@@ -5,7 +5,7 @@ def call(String agentLabel, String imageName, String imageTag, String kubeconfig
         stage('Checkout Code') {
             checkout([
                 $class: 'GitSCM',
-                branch: branch,
+                branches: [[name: branch]],
                 userRemoteConfigs: [[
                     credentialsId: credentialsId,
                     url: giturl
