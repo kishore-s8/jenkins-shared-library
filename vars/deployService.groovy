@@ -1,5 +1,5 @@
-def call(String agentLabel, String imageName, String imageTag, String kubeconfigPath, String k8sPath, String giturl, String credentialsId, string branch) {
-    node('') {
+def call(String agentLabel, String imageName, String imageTag, String kubeconfigPath, String k8sPath, String giturl, String credentialsId, String branch) {
+    node(agentLabel) {
         def fullImage = "${imageName}:${imageTag}"
 
         stage('Checkout Code') {
