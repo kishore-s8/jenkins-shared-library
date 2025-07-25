@@ -3,7 +3,7 @@ def call(String agentLabel, String imageName, String imageTag, String kubeconfig
          String credentialsId, String branch, String dockerCredentialsId,
          String dockerRegistry, String helmBranch) {
 
-    node('') {
+    node('') {  // use agentLabel here
 
         stage('Checkout Application Code') {
             dir('app') {
@@ -29,7 +29,7 @@ def call(String agentLabel, String imageName, String imageTag, String kubeconfig
         stage('Push Docker Image') {
             withCredentials([usernamePassword(credentialsId: dockerCredentialsId, usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                 bat """
-                    docker login -u %DOCKER_USER% -p %DOCKER_PASS%
+                    docker login -u %DOCKER_USER% -p %DOCKER_PASS% ${dockerRegistry}
                     docker push ${fullImage}
                 """
             }
