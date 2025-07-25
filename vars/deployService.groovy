@@ -3,7 +3,7 @@ def call(String agentLabel, String imageName, String imageTag, String kubeconfig
          String credentialsId, String branch, String dockerCredentialsId,
          String dockerRegistry, String helmBranch) {
 
-    node(agentLabel) {
+    node('') {
 
         stage('Checkout Application Code') {
             dir('app') {
