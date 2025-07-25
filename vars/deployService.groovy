@@ -1,8 +1,9 @@
-def call(String agentLabel, String fullImageName, String imageTag, String kubeconfigPath,
+def call(String agentLabel, String imageName, String imageTag, String kubeconfigPath,
          String helmGitUrl, String helmChartPath, String appGitUrl,
-         String credentialsId, String branch, String dockerCredentialsId) {
+         String credentialsId, String branch, String dockerCredentialsId,
+         String dockerRegistry, String helmBranch) {
 
-    node('') {
+    node(agentLabel) {
 
         stage('Checkout Application Code') {
             dir('app') {
@@ -17,7 +18,7 @@ def call(String agentLabel, String fullImageName, String imageTag, String kubeco
             }
         }
 
-        def fullImage = "${fullImageName}:${imageTag}"
+        def fullImage = "${dockerRegistry}/${imageName}:${imageTag}"
 
         stage('Build Docker Image') {
             dir('app') {
@@ -38,7 +39,7 @@ def call(String agentLabel, String fullImageName, String imageTag, String kubeco
             dir('helm') {
                 checkout([
                     $class: 'GitSCM',
-                    branches: [[name: 'main']],
+                    branches: [[name: helmBranch]],
                     userRemoteConfigs: [[
                         credentialsId: credentialsId,
                         url: helmGitUrl
@@ -50,11 +51,12 @@ def call(String agentLabel, String fullImageName, String imageTag, String kubeco
         stage('Deploy to Kubernetes') {
             try {
                 def releaseName = 'calculator-release'
+                def chartPath = "helm/${helmChartPath}"
 
                 bat """
-                    helm upgrade --install ${releaseName} helm/${helmChartPath} ^
+                    helm upgrade --install ${releaseName} ${chartPath} ^
                         --kubeconfig="${kubeconfigPath}" ^
-                        --set image.repository=${fullImageName} ^
+                        --set image.repository=${dockerRegistry}/${imageName} ^
                         --set image.tag=${imageTag}
                 """
             } catch (err) {
