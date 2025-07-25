@@ -1,6 +1,6 @@
 def call(String agentLabel, String imageName, String imageTag) {
 
-    node('') {
+    node(agentLabel) {
 
         def fullImage = "${imageName}:${imageTag}"  // Public image
 
@@ -10,9 +10,9 @@ def call(String agentLabel, String imageName, String imageTag) {
 
         stage('Run Container') {
             bat """
-                docker stop ${imageName} || true
-                docker rm ${imageName} || true
-                docker run -d --restart unless-stopped --name ${imageName} -p 8080:8080 ${fullImage}
+                docker stop ${imageName} || echo "No such container to stop"
+                docker rm ${imageName} || echo "No such container to remove"
+                docker run -d --restart unless-stopped --name ${imageName} -p 8081:8080 ${fullImage}
             """
         }
 
