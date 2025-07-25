@@ -1,9 +1,8 @@
-
 def call(String agentLabel, String imageName, String imageTag) {
 
-    node(agentLabel) {
+    node('') {
 
-        def fullImage = "${imageName}:${imageTag}"  // No registry prefix — assumes public image
+        def fullImage = "${imageName}:${imageTag}"  // Public image
 
         stage('Pull Public Image') {
             bat "docker pull ${fullImage}"
@@ -11,9 +10,9 @@ def call(String agentLabel, String imageName, String imageTag) {
 
         stage('Run Container') {
             bat """
-                docker stop ${imageName} || echo "No existing container"
-                docker rm ${imageName} || echo "No container to remove"
-                docker run -d --name ${imageName} -p 8080:8080 ${fullImage}
+                docker stop ${imageName} || true
+                docker rm ${imageName} || true
+                docker run -d --restart unless-stopped --name ${imageName} -p 8080:8080 ${fullImage}
             """
         }
 
