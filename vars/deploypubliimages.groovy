@@ -3,9 +3,8 @@ def call(List<Map> images, String registry = '') {
     images.each { image ->
         def name = image.name
         def tag = image.tag ?: 'latest'
-
-        // Create image reference safely (skip leading slash if registry is blank)
         def imageRef = registry ? "${registry}/${name}:${tag}" : "${name}:${tag}"
+        def containerName = "${name}-container"
 
         echo "=== Deploying image: ${name}:${tag} ==="
 
@@ -13,12 +12,16 @@ def call(List<Map> images, String registry = '') {
             docker pull ${name}:${tag}
             docker tag ${name}:${tag} ${imageRef}
             docker push ${imageRef}
+            
+            docker rm -f ${containerName} || exit 0
+            docker run -d --name ${containerName} ${imageRef}
         """
 
         echo "=== Verifying Docker container list after pushing ${name}:${tag} ==="
         bat "docker ps -a"
     }
 }
+
 
 
 
