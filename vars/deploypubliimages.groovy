@@ -13,6 +13,7 @@ def call(String imageStr) {
                     script {
                         images.each { img ->
                             echo "Deploying Docker image: ${img.name}:${img.tag}"
+                            // Example: docker commands here
                             // sh "docker pull ${img.name}:${img.tag}"
                         }
                     }
