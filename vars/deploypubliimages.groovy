@@ -4,18 +4,22 @@ def call(List<Map> images, String registry = '') {
         def name = image.name
         def tag = image.tag ?: 'latest'
 
-        echo "Deploying image: ${name}:${tag}"
+        // Create image reference safely (skip leading slash if registry is blank)
+        def imageRef = registry ? "${registry}/${name}:${tag}" : "${name}:${tag}"
+
+        echo "=== Deploying image: ${name}:${tag} ==="
 
         bat """
             docker pull ${name}:${tag}
-            docker tag ${name}:${tag} ${registry}/${name}:${tag}
-            docker push ${registry}/${name}:${tag}
+            docker tag ${name}:${tag} ${imageRef}
+            docker push ${imageRef}
         """
-         stage('Verify Container') {
-             bat "docker ps -a"
-         }
+
+        echo "=== Verifying Docker container list after pushing ${name}:${tag} ==="
+        bat "docker ps -a"
     }
 }
+
 
 
 // def call(String agentLabel, String imageName, String imageTag) {
