@@ -28,7 +28,7 @@ def call() {
                         images.each { img ->
                             echo "Deploying image: ${img.name}:${img.tag}"
                             // Example: pull or deploy
-                            // sh "docker pull ${img.name}:${img.tag}"
+                            bat "docker pull ${img.name}:${img.tag}"
                         }
                     }
                 }
