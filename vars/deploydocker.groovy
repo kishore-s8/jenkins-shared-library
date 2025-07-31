@@ -6,7 +6,7 @@ def call(Map config = [:]) {
     def appGitUrl = config.get('appGitUrl', 'https://github.com/kishore-s8/simple-calculator.git')
     def credentialsId = config.get('credentialsId', '')
     def branch = config.get('branch', 'main')
-    def dockerCredentialsId = config.get('dockerCredentialsId', '')
+    def dockerCredentialsId = config.get('dockerCredentialsId', 'docker-creds')
     def dockerRegistry = config.get('dockerRegistry', 'docker.io/8kishore8')
 
     node(agentLabel) {
