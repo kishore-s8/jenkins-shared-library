@@ -35,7 +35,7 @@ def call(Map config = [:]) {
         stage('Push Docker Image') {
             withCredentials([usernamePassword(credentialsId: dockerCredentialsId, usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                 bat """
-                    docker login -u %DOCKER_USER% -p %DOCKER_PASS% ${dockerRegistry}
+                    echo %DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin ${dockerRegistry}
                     docker push ${fullImage}
                 """
             }
