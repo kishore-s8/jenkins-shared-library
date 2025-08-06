@@ -1,4 +1,3 @@
-// vars/buildAndDeploy.groovy
 def call(Map config = [:]) {
     def agentLabel = config.get('agentLabel', '')
     def imageName = config.get('imageName', 'web-calculate')
@@ -8,6 +7,9 @@ def call(Map config = [:]) {
     def branch = config.get('branch', 'main')
     def dockerCredentialsId = config.get('dockerCredentialsId', 'dockerhub-creds')
     def dockerRegistry = config.get('dockerRegistry', 'docker.io/8kishore8')
+
+    // NEW: volume mapping, example: "host_path:container_path"
+   def volumeMapping = config.get('volumeMapping', 'C:/jenkins_volume/calc_vol:/app/data')// e.g. "C:/data:/app/data"
 
     node(agentLabel) {
 
@@ -42,10 +44,12 @@ def call(Map config = [:]) {
         }
 
         stage('Run Container') {
+            def volumeOption = volumeMapping ? "-v ${volumeMapping}" : ""
+
             bat """
                 docker stop ${imageName} || echo "No existing container"
                 docker rm ${imageName} || echo "No container to remove"
-                docker run -d --name ${imageName} -p 8082:3000 ${fullImage}
+                docker run -d --name ${imageName} ${volumeOption} -p 8082:3000 ${fullImage}
             """
         }
 
