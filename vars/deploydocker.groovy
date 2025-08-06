@@ -9,7 +9,7 @@ def call(Map config = [:]) {
     def dockerRegistry = config.get('dockerRegistry', 'docker.io/8kishore8')
 
     // NEW: volume mapping, example: "host_path:container_path"
-   def volumeMapping = config.get('volumeMapping', 'C:/jenkins_volume/calc_vol:/app/data')// e.g. "C:/data:/app/data"
+    def volumeMapping = config.get('volumeMapping', 'C:/jenkins_volume/calc_vol:/app/data') // e.g. "C:/data:/app/data"
 
     node(agentLabel) {
 
@@ -41,6 +41,15 @@ def call(Map config = [:]) {
                     docker push ${fullImage}
                 """
             }
+        }
+
+        stage('Prepare Volume Directory') {
+            // Extract the host path from volumeMapping (split by colon)
+            def hostPath = volumeMapping.split(':')[0]
+            echo "Creating host volume directory if it doesn't exist: ${hostPath}"
+            bat """
+                if not exist "${hostPath}" mkdir "${hostPath}"
+            """
         }
 
         stage('Run Container') {
