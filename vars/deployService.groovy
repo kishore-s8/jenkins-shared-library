@@ -3,7 +3,13 @@ def call(String agentLabel, String imageName, String imageTag, String kubeconfig
          String credentialsId, String branch, String dockerCredentialsId,
          String dockerRegistry, String helmBranch) {
 
-    node('') {  // use agentLabel here
+    node(agentLabel) {
+
+        def fullImage = "${dockerRegistry}/${imageName}:${imageTag}"
+        def releaseName = 'calculator-release'
+        def chartPath = "helm/${helmChartPath}"
+        def manifestOutput = "helm-manifest.yaml"
+        def ingressHost = "calculator.example.com"
 
         stage('Checkout Application Code') {
             dir('app') {
@@ -17,8 +23,6 @@ def call(String agentLabel, String imageName, String imageTag, String kubeconfig
                 ])
             }
         }
-
-        def fullImage = "${dockerRegistry}/${imageName}:${imageTag}"
 
         stage('Build Docker Image') {
             dir('app') {
@@ -48,26 +52,34 @@ def call(String agentLabel, String imageName, String imageTag, String kubeconfig
             }
         }
 
-        stage('Deploy to Kubernetes') {
+        stage('Render and Apply Helm Manifests') {
             try {
-                def releaseName = 'calculator-release'
-                def chartPath = "helm/${helmChartPath}"
-
                 bat """
-                    helm upgrade --install ${releaseName} ${chartPath} ^
+                    helm template ${releaseName} ${chartPath} ^
                         --kubeconfig="${kubeconfigPath}" ^
                         --set image.repository=${dockerRegistry}/${imageName} ^
-                        --set image.tag=${imageTag}
+                        --set image.tag=${imageTag} ^
+                        --set service.port=3000 ^
+                        --set service.nodePort=30010 ^
+                        --set ingress.enabled=true ^
+                        --set ingress.className=nginx ^
+                        --set ingress.hosts[0].host=${ingressHost} ^
+                        --set ingress.hosts[0].paths[0].path=/ ^
+                        --set ingress.hosts[0].paths[0].pathType=Prefix ^
+                        > ${manifestOutput}
                 """
+
+                bat "kubectl apply -f ${manifestOutput} --kubeconfig=\"${kubeconfigPath}\""
             } catch (err) {
-                echo "Deployment failed: ${err}"
-                error("Stopping pipeline due to deployment error.")
+                echo "❌ Deployment failed: ${err}"
+                error("Stopping pipeline due to manifest error.")
             }
         }
 
         stage('Verify Deployment') {
             bat "kubectl --kubeconfig=\"${kubeconfigPath}\" get pods"
             bat "kubectl --kubeconfig=\"${kubeconfigPath}\" get svc"
+            bat "kubectl --kubeconfig=\"${kubeconfigPath}\" get ingress"
         }
     }
 }
